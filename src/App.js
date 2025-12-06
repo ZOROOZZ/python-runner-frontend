@@ -37,6 +37,7 @@ export default function PythonProjectRunner() {
     if (isAuthenticated) {
       fetchDays();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   const checkAuthentication = async () => {
