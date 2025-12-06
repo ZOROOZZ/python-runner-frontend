@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Code, Folder, FileCode, Loader, AlertCircle, CheckCircle } from 'lucide-react';
+import { Play, Code, Folder, FileCode, Loader, AlertCircle, CheckCircle, LogOut, Lock, User } from 'lucide-react';
 
 const API_URL = 'https://python-runner-api.onrender.com';
 
+const getToken = () => localStorage.getItem('auth_token');
+const setToken = (token) => localStorage.setItem('auth_token', token);
+const removeToken = () => localStorage.removeItem('auth_token');
+const getUsername = () => localStorage.getItem('username');
+const setUsername = (username) => localStorage.setItem('username', username);
+const removeUsername = () => localStorage.removeItem('username');
+
 export default function PythonProjectRunner() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [username, setUsernameState] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+
   const [days, setDays] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [files, setFiles] = useState([]);
@@ -16,14 +30,102 @@ export default function PythonProjectRunner() {
   const [userInput, setUserInput] = useState('');
 
   useEffect(() => {
-    fetchDays();
+    checkAuthentication();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDays();
+    }
+  }, [isAuthenticated]);
+
+  const checkAuthentication = async () => {
+    const token = getToken();
+    if (!token) {
+      setIsCheckingAuth(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/verify`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        setIsAuthenticated(true);
+      } else {
+        removeToken();
+        removeUsername();
+      }
+    } catch (err) {
+      removeToken();
+      removeUsername();
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setLoggingIn(true);
+    setLoginError('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Login failed');
+      }
+
+      const data = await res.json();
+      setToken(data.access_token);
+      setUsername(data.username);
+      setIsAuthenticated(true);
+      setUsernameState('');
+      setPassword('');
+    } catch (err) {
+      setLoginError(err.message);
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
+    }
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    removeUsername();
+    setIsAuthenticated(false);
+    setDays([]);
+    setSelectedDay(null);
+    setFiles([]);
+    setSelectedFile(null);
+    setCode('');
+    setOutput('');
+  };
+
+  const fetchWithAuth = async (url, options = {}) => {
+    const token = getToken();
+    const headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    };
+    return fetch(url, { ...options, headers });
+  };
 
   const fetchDays = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/days`);
+      const res = await fetchWithAuth(`${API_URL}/api/days`);
       if (!res.ok) throw new Error('Failed to fetch days');
       const data = await res.json();
       setDays(data);
@@ -40,8 +142,9 @@ export default function PythonProjectRunner() {
     setSelectedFile(null);
     setCode('');
     setOutput('');
+    setUserInput('');
     try {
-      const res = await fetch(`${API_URL}/api/days/${dayNumber}/files`);
+      const res = await fetchWithAuth(`${API_URL}/api/days/${dayNumber}/files`);
       if (!res.ok) throw new Error('Failed to fetch files');
       const data = await res.json();
       setFiles(data);
@@ -57,8 +160,9 @@ export default function PythonProjectRunner() {
     setLoading(true);
     setError('');
     setOutput('');
+    setUserInput('');
     try {
-      const res = await fetch(`${API_URL}/api/file/${dayNumber}/${filename}`);
+      const res = await fetchWithAuth(`${API_URL}/api/file/${dayNumber}/${filename}`);
       if (!res.ok) throw new Error('Failed to fetch file content');
       const data = await res.json();
       setCode(data.content);
@@ -74,29 +178,26 @@ export default function PythonProjectRunner() {
     setExecuting(true);
     setOutput('');
     setError('');
-    
-    // Replace input() calls with predefined values if user provided input
+
     let modifiedCode = code;
     if (userInput.trim()) {
       const inputs = userInput.split('\n');
       let inputIndex = 0;
-      
-      // Replace input() with actual values
       modifiedCode = code.replace(/input\([^)]*\)/g, () => {
         const value = inputs[inputIndex] || '';
         inputIndex++;
         return `"${value}"`;
       });
     }
-    
+
     try {
-      const res = await fetch(`${API_URL}/api/execute`, {
+      const res = await fetchWithAuth(`${API_URL}/api/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: modifiedCode, timeout: 10 })
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setOutput(data.output || 'Code executed successfully (no output)');
       } else {
@@ -109,6 +210,169 @@ export default function PythonProjectRunner() {
     }
   };
 
+  if (isCheckingAuth) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Loader size={48} style={{ animation: 'spin 1s linear infinite', color: 'white' }} />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          padding: '3rem',
+          maxWidth: '400px',
+          width: '100%',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <Lock size={64} style={{ color: '#667eea', margin: '0 auto 1rem' }} />
+            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2d3748', margin: 0 }}>
+              Python Project Runner
+            </h1>
+            <p style={{ color: '#718096', marginTop: '0.5rem' }}>Sign in to continue</p>
+          </div>
+
+          <div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#2d3748' }}>
+                Username
+              </label>
+              <div style={{ position: 'relative' }}>
+                <User size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#a0aec0' }} />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsernameState(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem 0.75rem 3rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#2d3748' }}>
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#a0aec0' }} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem 0.75rem 3rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
+            </div>
+
+            {loginError && (
+              <div style={{
+                padding: '0.75rem',
+                background: '#fed7d7',
+                color: '#c53030',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                fontSize: '0.9rem'
+              }}>
+                {loginError}
+              </div>
+            )}
+
+            <button
+              onClick={handleLogin}
+              disabled={loggingIn}
+              style={{
+                width: '100%',
+                padding: '1rem',
+                background: loggingIn ? '#cbd5e0' : '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: loggingIn ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                transition: 'background 0.2s'
+              }}
+            >
+              {loggingIn ? (
+                <>
+                  <Loader size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </div>
+
+          <div style={{
+            marginTop: '2rem',
+            padding: '1rem',
+            background: '#edf2f7',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
+            color: '#4a5568'
+          }}>
+            <strong>Default credentials:</strong><br />
+            Username: admin<br />
+            Password: admin123<br />
+            <span style={{ color: '#e53e3e', fontWeight: 'bold' }}>⚠️ Change after first login!</span>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -117,20 +381,44 @@ export default function PythonProjectRunner() {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem', color: 'white' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem', color: 'white', position: 'relative' }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
+            onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
             <Code size={48} />
             <h1 style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0 }}>
               Python Project Runner
             </h1>
           </div>
-          <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>View and execute your daily Python projects</p>
+          <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>
+            Welcome, <strong>{getUsername()}</strong>! 👋
+          </p>
         </div>
 
-        {/* Main Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem' }}>
-          {/* Days Sidebar */}
           <div>
             <div style={{
               background: 'rgba(255, 255, 255, 0.95)',
@@ -177,9 +465,7 @@ export default function PythonProjectRunner() {
             </div>
           </div>
 
-          {/* Main Content */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Files List */}
             {selectedDay && (
               <div style={{
                 background: 'rgba(255, 255, 255, 0.95)',
@@ -228,7 +514,6 @@ export default function PythonProjectRunner() {
               </div>
             )}
 
-            {/* Code Editor */}
             {selectedFile && (
               <div style={{
                 background: 'rgba(255, 255, 255, 0.95)',
@@ -284,7 +569,6 @@ export default function PythonProjectRunner() {
                   spellCheck="false"
                 />
 
-                {/* Input Section */}
                 {code.includes('input(') && (
                   <div style={{ marginTop: '1rem' }}>
                     <label style={{ 
@@ -324,7 +608,6 @@ export default function PythonProjectRunner() {
                   </div>
                 )}
 
-                {/* Output */}
                 {(output || error) && (
                   <div style={{ marginTop: '1rem' }}>
                     <h4 style={{ 
@@ -367,23 +650,6 @@ export default function PythonProjectRunner() {
             )}
           </div>
         </div>
-
-        {/* Setup Notice */}
-        {days.length === 0 && !loading && (
-          <div style={{
-            marginTop: '2rem',
-            background: 'rgba(237, 137, 54, 0.2)',
-            border: '2px solid rgba(237, 137, 54, 0.5)',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            textAlign: 'center',
-            color: 'white'
-          }}>
-            <AlertCircle size={32} style={{ margin: '0 auto 1rem' }} />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Setup Required</h3>
-            <p>Please configure your GitHub repository details in the backend (main.py)</p>
-          </div>
-        )}
       </div>
 
       <style>{`
