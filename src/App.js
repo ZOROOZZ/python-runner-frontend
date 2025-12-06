@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Code, Folder, FileCode, Loader, AlertCircle } from 'lucide-react';
+import { Play, Code, Folder, FileCode, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 
-const API_URL = 'https://python-runner-api.onrender.com'; // Your Render backend
+const API_URL = 'https://python-runner-api.onrender.com';
 
 export default function PythonProjectRunner() {
   const [days, setDays] = useState([]);
@@ -14,7 +14,6 @@ export default function PythonProjectRunner() {
   const [executing, setExecuting] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch all days on mount
   useEffect(() => {
     fetchDays();
   }, []);
@@ -95,49 +94,66 @@ export default function PythonProjectRunner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-8">
-      <div className="max-w-7xl mx-auto">
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '2rem',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Code className="w-12 h-12 text-purple-400" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <div style={{ textAlign: 'center', marginBottom: '3rem', color: 'white' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <Code size={48} />
+            <h1 style={{ fontSize: '3rem', fontWeight: 'bold', margin: 0 }}>
               Python Project Runner
             </h1>
           </div>
-          <p className="text-gray-300 text-lg">View and execute your daily Python projects</p>
+          <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>View and execute your daily Python projects</p>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem' }}>
           {/* Days Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-              <div className="flex items-center gap-2 mb-4">
-                <Folder className="w-5 h-5 text-purple-400" />
-                <h2 className="text-xl font-bold">Days</h2>
+          <div>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <Folder size={20} style={{ color: '#667eea' }} />
+                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 'bold' }}>Days</h2>
               </div>
               
               {loading && !selectedDay ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader className="w-6 h-6 animate-spin text-purple-400" />
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#667eea' }} />
                 </div>
               ) : error && !days.length ? (
-                <div className="text-red-400 text-sm">{error}</div>
+                <div style={{ color: '#e53e3e', fontSize: '0.9rem' }}>{error}</div>
               ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '500px', overflowY: 'auto' }}>
                   {days.map((day) => (
                     <button
                       key={day.day_number}
                       onClick={() => fetchFiles(day.day_number)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
-                        selectedDay === day.day_number
-                          ? 'bg-purple-500 text-white shadow-lg'
-                          : 'bg-white/5 hover:bg-white/10'
-                      }`}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        background: selectedDay === day.day_number ? '#667eea' : '#f7fafc',
+                        color: selectedDay === day.day_number ? 'white' : '#2d3748',
+                        fontWeight: selectedDay === day.day_number ? 'bold' : 'normal'
+                      }}
                     >
-                      <div className="font-semibold">Day {day.day_number}</div>
-                      <div className="text-xs text-gray-300">{day.folder_name}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>Day {day.day_number}</div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{day.folder_name}</div>
                     </button>
                   ))}
                 </div>
@@ -146,36 +162,48 @@ export default function PythonProjectRunner() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Files List */}
             {selectedDay && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileCode className="w-5 h-5 text-purple-400" />
-                  <h2 className="text-xl font-bold">Python Files - Day {selectedDay}</h2>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <FileCode size={20} style={{ color: '#667eea' }} />
+                  <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 'bold' }}>
+                    Python Files - Day {selectedDay}
+                  </h2>
                 </div>
                 
                 {loading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader className="w-6 h-6 animate-spin text-purple-400" />
+                  <div style={{ textAlign: 'center', padding: '1rem' }}>
+                    <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#667eea' }} />
                   </div>
                 ) : files.length === 0 ? (
-                  <p className="text-gray-400">No Python files found in this day</p>
+                  <p style={{ color: '#718096' }}>No Python files found in this day</p>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
                     {files.map((file) => (
                       <button
                         key={file.filename}
                         onClick={() => fetchFileContent(selectedDay, file.filename)}
-                        className={`px-4 py-3 rounded-lg text-left transition-all ${
-                          selectedFile === file.filename
-                            ? 'bg-purple-500 text-white shadow-lg'
-                            : 'bg-white/5 hover:bg-white/10'
-                        }`}
+                        style={{
+                          padding: '1rem',
+                          borderRadius: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.2s',
+                          background: selectedFile === file.filename ? '#667eea' : '#f7fafc',
+                          color: selectedFile === file.filename ? 'white' : '#2d3748'
+                        }}
                       >
-                        <div className="flex items-center gap-2">
-                          <FileCode className="w-4 h-4" />
-                          <span className="font-mono text-sm">{file.filename}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <FileCode size={16} />
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{file.filename}</span>
                         </div>
                       </button>
                     ))}
@@ -186,18 +214,36 @@ export default function PythonProjectRunner() {
 
             {/* Code Editor */}
             {selectedFile && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold">{selectedFile}</h3>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedFile}</h3>
                   <button
                     onClick={executeCode}
                     disabled={executing || !code}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all shadow-lg"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.75rem 1.5rem',
+                      background: executing || !code ? '#cbd5e0' : '#48bb78',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: executing || !code ? 'not-allowed' : 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      transition: 'all 0.2s'
+                    }}
                   >
                     {executing ? (
-                      <Loader className="w-4 h-4 animate-spin" />
+                      <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
                     ) : (
-                      <Play className="w-4 h-4" />
+                      <Play size={16} />
                     )}
                     {executing ? 'Running...' : 'Run Code'}
                   </button>
@@ -206,26 +252,57 @@ export default function PythonProjectRunner() {
                 <textarea
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-64 p-4 bg-slate-900 text-green-400 font-mono text-sm rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  style={{
+                    width: '100%',
+                    height: '300px',
+                    padding: '1rem',
+                    background: '#1a202c',
+                    color: '#48bb78',
+                    fontFamily: 'monospace',
+                    fontSize: '0.95rem',
+                    borderRadius: '8px',
+                    border: '2px solid #4a5568',
+                    resize: 'vertical',
+                    outline: 'none'
+                  }}
                   spellCheck="false"
                 />
 
                 {/* Output */}
                 {(output || error) && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-bold mb-2 flex items-center gap-2">
+                  <div style={{ marginTop: '1rem' }}>
+                    <h4 style={{ 
+                      fontSize: '0.9rem', 
+                      fontWeight: 'bold', 
+                      marginBottom: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
                       {error ? (
                         <>
-                          <AlertCircle className="w-4 h-4 text-red-400" />
-                          Error
+                          <AlertCircle size={16} style={{ color: '#e53e3e' }} />
+                          <span style={{ color: '#e53e3e' }}>Error</span>
                         </>
                       ) : (
-                        'Output'
+                        <>
+                          <CheckCircle size={16} style={{ color: '#48bb78' }} />
+                          <span>Output</span>
+                        </>
                       )}
                     </h4>
-                    <pre className={`p-4 rounded-lg ${
-                      error ? 'bg-red-900/30 text-red-200' : 'bg-slate-900 text-green-400'
-                    } font-mono text-sm whitespace-pre-wrap max-h-64 overflow-y-auto`}>
+                    <pre style={{
+                      padding: '1rem',
+                      borderRadius: '8px',
+                      background: error ? '#fed7d7' : '#1a202c',
+                      color: error ? '#c53030' : '#48bb78',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      whiteSpace: 'pre-wrap',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      margin: 0
+                    }}>
                       {error || output}
                     </pre>
                   </div>
@@ -237,15 +314,32 @@ export default function PythonProjectRunner() {
 
         {/* Setup Notice */}
         {days.length === 0 && !loading && (
-          <div className="mt-8 bg-yellow-500/20 border border-yellow-500/50 rounded-2xl p-6 text-center">
-            <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-            <h3 className="text-lg font-bold mb-2">Setup Required</h3>
-            <p className="text-gray-300">
-              Please configure your GitHub repository details in the backend (main.py)
-            </p>
+          <div style={{
+            marginTop: '2rem',
+            background: 'rgba(237, 137, 54, 0.2)',
+            border: '2px solid rgba(237, 137, 54, 0.5)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <AlertCircle size={32} style={{ margin: '0 auto 1rem' }} />
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Setup Required</h3>
+            <p>Please configure your GitHub repository details in the backend (main.py)</p>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      `}</style>
     </div>
   );
 }
