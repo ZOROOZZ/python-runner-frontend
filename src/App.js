@@ -13,6 +13,7 @@ export default function PythonProjectRunner() {
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [error, setError] = useState('');
+  const [userInput, setUserInput] = useState('');
 
   useEffect(() => {
     fetchDays();
@@ -73,11 +74,26 @@ export default function PythonProjectRunner() {
     setExecuting(true);
     setOutput('');
     setError('');
+    
+    // Replace input() calls with predefined values if user provided input
+    let modifiedCode = code;
+    if (userInput.trim()) {
+      const inputs = userInput.split('\n');
+      let inputIndex = 0;
+      
+      // Replace input() with actual values
+      modifiedCode = code.replace(/input\([^)]*\)/g, () => {
+        const value = inputs[inputIndex] || '';
+        inputIndex++;
+        return `"${value}"`;
+      });
+    }
+    
     try {
       const res = await fetch(`${API_URL}/api/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, timeout: 10 })
+        body: JSON.stringify({ code: modifiedCode, timeout: 10 })
       });
       const data = await res.json();
       
@@ -267,6 +283,46 @@ export default function PythonProjectRunner() {
                   }}
                   spellCheck="false"
                 />
+
+                {/* Input Section */}
+                {code.includes('input(') && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      fontWeight: 'bold', 
+                      marginBottom: '0.5rem',
+                      fontSize: '0.9rem'
+                    }}>
+                      Program Inputs (one per line):
+                    </label>
+                    <textarea
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      placeholder="Enter input values (one per line)&#10;Example:&#10;5&#10;10"
+                      style={{
+                        width: '100%',
+                        height: '100px',
+                        padding: '0.75rem',
+                        background: '#f7fafc',
+                        color: '#2d3748',
+                        fontFamily: 'monospace',
+                        fontSize: '0.9rem',
+                        borderRadius: '8px',
+                        border: '2px solid #e2e8f0',
+                        resize: 'vertical',
+                        outline: 'none'
+                      }}
+                    />
+                    <p style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#718096', 
+                      marginTop: '0.5rem',
+                      fontStyle: 'italic'
+                    }}>
+                      💡 Tip: If your code has multiple input() calls, enter each value on a new line
+                    </p>
+                  </div>
+                )}
 
                 {/* Output */}
                 {(output || error) && (
