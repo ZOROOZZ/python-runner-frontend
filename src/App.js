@@ -215,12 +215,12 @@ export default function PythonProjectRunner() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Loader size={48} style={{ animation: 'spin 1s linear infinite', color: 'white' }} />
+        <Loader size={48} style={{ animation: 'spin 1s linear infinite', color: '#ffffff' }} />
       </div>
     );
   }
@@ -229,7 +229,7 @@ export default function PythonProjectRunner() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -242,14 +242,14 @@ export default function PythonProjectRunner() {
           padding: '3rem',
           maxWidth: '400px',
           width: '100%',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <Lock size={64} style={{ color: '#667eea', margin: '0 auto 1rem' }} />
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2d3748', margin: 0 }}>
+            <Lock size={64} style={{ color: '#1a1a1a', margin: '0 auto 1rem' }} />
+            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1a1a1a', margin: 0 }}>
               Python Project Runner
             </h1>
-            <p style={{ color: '#718096', marginTop: '0.5rem' }}>Sign in to continue</p>
+            <p style={{ color: '#666666', marginTop: '0.5rem' }}>Sign in to continue</p>
           </div>
 
           <div>
@@ -273,7 +273,7 @@ export default function PythonProjectRunner() {
                     outline: 'none',
                     transition: 'border 0.2s'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onFocus={(e) => e.target.style.borderColor = '#1a1a1a'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
@@ -299,7 +299,7 @@ export default function PythonProjectRunner() {
                     outline: 'none',
                     transition: 'border 0.2s'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onFocus={(e) => e.target.style.borderColor = '#1a1a1a'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
@@ -308,8 +308,8 @@ export default function PythonProjectRunner() {
             {loginError && (
               <div style={{
                 padding: '0.75rem',
-                background: '#fed7d7',
-                color: '#c53030',
+                background: '#ffebee',
+                color: '#c62828',
                 borderRadius: '8px',
                 marginBottom: '1rem',
                 fontSize: '0.9rem'
@@ -324,7 +324,7 @@ export default function PythonProjectRunner() {
               style={{
                 width: '100%',
                 padding: '1rem',
-                background: loggingIn ? '#cbd5e0' : '#667eea',
+                background: loggingIn ? '#cccccc' : '#1a1a1a',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -337,6 +337,8 @@ export default function PythonProjectRunner() {
                 gap: '0.5rem',
                 transition: 'background 0.2s'
               }}
+              onMouseOver={(e) => !loggingIn && (e.target.style.background = '#333333')}
+              onMouseOut={(e) => !loggingIn && (e.target.style.background = '#1a1a1a')}
             >
               {loggingIn ? (
                 <>
@@ -377,7 +379,7 @@ export default function PythonProjectRunner() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
       padding: '2rem',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
@@ -393,16 +395,22 @@ export default function PythonProjectRunner() {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.75rem 1.5rem',
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.1)',
               color: 'white',
-              border: 'none',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '8px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              transition: 'background 0.2s'
+              transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
-            onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+            onMouseOver={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }}
           >
             <LogOut size={16} />
             Logout
@@ -428,16 +436,16 @@ export default function PythonProjectRunner() {
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <Folder size={20} style={{ color: '#667eea' }} />
+                <Folder size={20} style={{ color: '#1a1a1a' }} />
                 <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 'bold' }}>Days</h2>
               </div>
               
               {loading && !selectedDay ? (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
-                  <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#667eea' }} />
+                  <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#1a1a1a' }} />
                 </div>
               ) : error && !days.length ? (
-                <div style={{ color: '#e53e3e', fontSize: '0.9rem' }}>{error}</div>
+                <div style={{ color: '#c62828', fontSize: '0.9rem' }}>{error}</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '500px', overflowY: 'auto' }}>
                   {days.map((day) => (
@@ -452,8 +460,8 @@ export default function PythonProjectRunner() {
                         border: 'none',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        background: selectedDay === day.day_number ? '#667eea' : '#f7fafc',
-                        color: selectedDay === day.day_number ? 'white' : '#2d3748',
+                        background: selectedDay === day.day_number ? '#1a1a1a' : '#f5f5f5',
+                        color: selectedDay === day.day_number ? 'white' : '#1a1a1a',
                         fontWeight: selectedDay === day.day_number ? 'bold' : 'normal'
                       }}
                     >
@@ -475,7 +483,7 @@ export default function PythonProjectRunner() {
                 boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <FileCode size={20} style={{ color: '#667eea' }} />
+                  <FileCode size={20} style={{ color: '#1a1a1a' }} />
                   <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 'bold' }}>
                     Python Files - Day {selectedDay}
                   </h2>
@@ -483,10 +491,10 @@ export default function PythonProjectRunner() {
                 
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '1rem' }}>
-                    <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#667eea' }} />
+                    <Loader size={24} style={{ animation: 'spin 1s linear infinite', color: '#1a1a1a' }} />
                   </div>
                 ) : files.length === 0 ? (
-                  <p style={{ color: '#718096' }}>No Python files found in this day</p>
+                  <p style={{ color: '#666666' }}>No Python files found in this day</p>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
                     {files.map((file) => (
@@ -500,8 +508,8 @@ export default function PythonProjectRunner() {
                           cursor: 'pointer',
                           textAlign: 'left',
                           transition: 'all 0.2s',
-                          background: selectedFile === file.filename ? '#667eea' : '#f7fafc',
-                          color: selectedFile === file.filename ? 'white' : '#2d3748'
+                          background: selectedFile === file.filename ? '#1a1a1a' : '#f5f5f5',
+                          color: selectedFile === file.filename ? 'white' : '#1a1a1a'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -532,7 +540,7 @@ export default function PythonProjectRunner() {
                       alignItems: 'center',
                       gap: '0.5rem',
                       padding: '0.75rem 1.5rem',
-                      background: executing || !code ? '#cbd5e0' : '#48bb78',
+                      background: executing || !code ? '#cccccc' : '#1a1a1a',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
@@ -541,6 +549,8 @@ export default function PythonProjectRunner() {
                       fontSize: '1rem',
                       transition: 'all 0.2s'
                     }}
+                    onMouseOver={(e) => !executing && !(!code) && (e.target.style.background = '#333333')}
+                    onMouseOut={(e) => !executing && !(!code) && (e.target.style.background = '#1a1a1a')}
                   >
                     {executing ? (
                       <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
